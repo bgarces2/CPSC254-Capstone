@@ -1,0 +1,62 @@
+.scan-form {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-row input,
+.form-row select {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  min-width: 200px;
+}
+
+.form-row input[type="file"] {
+  padding: 4px;
+  cursor: pointer;
+}
+
+.form-row button {
+  background: #ff4d4d;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  transition: background 0.15s;
+}
+
+.form-row button:hover:not(:disabled) { background: #e03c3c; }
+.form-row button:disabled { background: #555; cursor: not-allowed; }
+
+.form-error {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 8px;
+}

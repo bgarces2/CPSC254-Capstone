@@ -1,0 +1,310 @@
+openapi: "3.0.3"
+info:
+  title: Victim API
+  version: "1.0.0"
+  description: Intentionally vulnerable API used as a SlingShot scan target.
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  # ── BOLA ──────────────────────────────────────────────────────────────────
+  /api/v1/invoices/{invoice_id}:
+    get:
+      summary: Get an invoice by ID
+      tags: [invoices]
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  # ── MASS_ASSIGNMENT ───────────────────────────────────────────────────────
+  /api/v1/user/profile:
+    get:
+      summary: Get current user profile
+      tags: [user]
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+
+    patch:
+      summary: Update current user profile
+      tags: [user]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+
+  # ── BFLA ──────────────────────────────────────────────────────────────────
+  /api/v1/admin/users:
+    get:
+      summary: "[Admin] List all users with sensitive data"
+      tags: [admin]
+      responses:
+        "200":
+          description: Full user list (admin only)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdminUser"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /api/v1/admin/users/{user_id}:
+    delete:
+      summary: "[Admin] Delete a user"
+      tags: [admin]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  # ── MISSING_AUTH + EXCESSIVE_DATA_EXPOSURE ────────────────────────────────
+  /api/v1/reports/summary:
+    get:
+      summary: Get revenue and usage summary
+      tags: [reports]
+      responses:
+        "200":
+          description: Summary report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportSummary"
+
+  # ── BOLA + EXCESSIVE_DATA_EXPOSURE ────────────────────────────────────────
+  /api/v1/reports/users/{user_id}:
+    get:
+      summary: Get a user performance report
+      tags: [reports]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User report with salary and SSN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserReport"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  # ── SQLI ──────────────────────────────────────────────────────────────────
+  /api/v1/search:
+    get:
+      summary: Search products by name or category
+      tags: [search]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search query (passed unsanitized to SQL LIKE clause)
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Database error (leaks SQL syntax)
+
+  /api/v1/search/{product_id}:
+    get:
+      summary: Get a product by ID
+      tags: [search]
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Product ID (passed unsanitized — vulnerable to time-based SQLi)
+      responses:
+        "200":
+          description: Product data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  # ── PATH TRAVERSAL ────────────────────────────────────────────────────────
+  /api/v1/files/{filename}:
+    get:
+      summary: Serve a file from the public directory
+      tags: [files]
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Filename to serve (not sanitized — vulnerable to path traversal)
+      responses:
+        "200":
+          description: File contents
+        "401":
+          description: Unauthorized
+        "404":
+          description: File not found (leaks resolved path in error)
+  schemas:
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        owner_id:
+          type: integer
+        amount:
+          type: number
+        description:
+          type: string
+        status:
+          type: string
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        bio:
+          type: string
+        avatar:
+          type: string
+        is_admin:
+          type: boolean
+
+    ProfileUpdate:
+      type: object
+      properties:
+        bio:
+          type: string
+        avatar:
+          type: string
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+        salary:
+          type: number
+        ssn:
+          type: string
+
+    ReportSummary:
+      type: object
+      properties:
+        total_revenue:
+          type: number
+        active_users:
+          type: integer
+        pending_invoices:
+          type: integer
+        internal_notes:
+          type: string
+        api_key:
+          type: string
+        db_connection_string:
+          type: string
+
+    UserReport:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        email:
+          type: string
+        salary:
+          type: number
+        ssn_last4:
+          type: string
+        performance:
+          type: string
+        internal_notes:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        category:
+          type: string

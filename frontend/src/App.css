@@ -1,0 +1,41 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+  gap: 16px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 12px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff4d4d;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.duel-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .duel-view {
+    grid-template-columns: 1fr;
+  }
+}
