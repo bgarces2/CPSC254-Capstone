@@ -56,7 +56,7 @@ npm run dev
 3. Leave the target URL as `http://localhost:3000`
 4. Click **Launch Scan**
 
-Watch the Attacker Terminal stream live fuzzing attempts on the left. When an exploit is confirmed, the generated middleware patch appears on the right.
+Watch the Attacker Terminal stream live fuzzing attempts on the left. When an exploit is confirmed, the generated middleware patch appears on the right. Audit should take ~6 minutes. 
 
 ---
 
