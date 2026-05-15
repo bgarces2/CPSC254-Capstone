@@ -8,6 +8,7 @@ from openai import OpenAI
 
 from config import OPENAI_API_KEY, OPENAI_MODEL, MAX_FUZZ_ATTEMPTS
 from models.schemas import PayloadPair, FuzzLog
+from security import sanitize_response_body
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -119,11 +120,13 @@ async def run_fuzzing_session(
         log = await _run_and_log(session_id, pair.endpoint_path, attempt, payload_dict)
         yield log
 
-        # Capture results for Phase 2 context — no re-fetch needed
+        # Capture results for Phase 2 context — sanitize before injecting into LLM prompt
         if label == "baseline":
-            b_status, b_body = log.response_status, log.response_body
+            b_status = log.response_status
+            b_body = sanitize_response_body(log.response_body)
         else:
-            a_status, a_body = log.response_status, log.response_body
+            a_status = log.response_status
+            a_body = sanitize_response_body(log.response_body)
 
     messages = [
         {"role": "system", "content": _SYSTEM_PROMPT},

@@ -11,3 +11,5 @@ TARGET_BASE_URL: str = os.getenv("TARGET_BASE_URL", "http://localhost:3000")
 MAX_FUZZ_ATTEMPTS: int = int(os.getenv("MAX_FUZZ_ATTEMPTS", "10"))
 
 DATABASE_URL: str = os.getenv("DATABASE_URL", "slingshot.db")
+
+SESSION_MAX_AGE_HOURS: int = int(os.getenv("SESSION_MAX_AGE_HOURS", "24"))

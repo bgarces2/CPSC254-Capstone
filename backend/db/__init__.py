@@ -1,4 +1,4 @@
-from .database import (
+from db.database import (
     init_db,
     create_session,
     update_session_status,
@@ -7,6 +7,7 @@ from .database import (
     save_vuln_result,
     save_patch,
     mark_patch_validated,
+    delete_old_sessions,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "save_vuln_result",
     "save_patch",
     "mark_patch_validated",
+    "delete_old_sessions",
 ]

@@ -12,11 +12,8 @@
 # Editor
 .vscode/
 
-# Proposal (not part of the codebase)
+# Proposal
 Proposal.txt
-
-# Duplicate files
-victim-api/openapi copy.yaml
 
 # ── Python ────────────────────────────────────────────────────────────────────
 

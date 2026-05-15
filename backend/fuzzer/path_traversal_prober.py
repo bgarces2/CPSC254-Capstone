@@ -154,7 +154,7 @@ async def probe_path_traversal(
                 try:
                     resp = await client.request(method=method, url=url, headers=headers)
                     status = resp.status_code
-                    body = resp.text[:2000]
+                    body = resp.text[:500]   # cap stored body size to limit PII at rest
                 except httpx.RequestError as e:
                     status = 0
                     body = f"Request error: {e}"

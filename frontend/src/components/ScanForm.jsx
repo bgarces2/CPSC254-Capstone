@@ -65,7 +65,7 @@ export default function ScanForm({ onScanStarted, scanning }) {
         </label>
 
         <button type="submit" disabled={scanning || !specFile}>
-          {scanning ? "Scanning…" : "Launch Scan ⚡"}
+          {scanning ? "Scanning…" : "Launch Scan"}
         </button>
       </div>
 

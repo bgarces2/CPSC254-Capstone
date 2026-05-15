@@ -166,3 +166,35 @@ def mark_patch_validated(session_id: str) -> None:
             "UPDATE patches SET validated = 1 WHERE session_id = ?",
             (session_id,)
         )
+
+
+def delete_old_sessions(max_age_hours: int = 24) -> int:
+    """
+    Delete scan sessions (and all related logs/results/patches) older than
+    max_age_hours. Returns the number of sessions deleted.
+
+    This limits PII retention — response bodies stored in fuzz_logs may
+    contain sensitive data leaked by the target API.
+    """
+    from datetime import datetime, timezone, timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=max_age_hours)).isoformat()
+
+    with db_cursor() as cur:
+        # Fetch session IDs to delete
+        cur.execute(
+            "SELECT session_id FROM scan_sessions WHERE created_at < ?",
+            (cutoff,)
+        )
+        old_ids = [row[0] for row in cur.fetchall()]
+
+    if not old_ids:
+        return 0
+
+    placeholders = ",".join("?" * len(old_ids))
+    with db_cursor() as cur:
+        cur.execute(f"DELETE FROM fuzz_logs     WHERE session_id IN ({placeholders})", old_ids)
+        cur.execute(f"DELETE FROM vuln_results  WHERE session_id IN ({placeholders})", old_ids)
+        cur.execute(f"DELETE FROM patches       WHERE session_id IN ({placeholders})", old_ids)
+        cur.execute(f"DELETE FROM scan_sessions WHERE session_id IN ({placeholders})", old_ids)
+
+    return len(old_ids)

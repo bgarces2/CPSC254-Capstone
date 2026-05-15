@@ -30,7 +30,7 @@ async def _fire_request(
 ) -> tuple[int, str]:
     try:
         resp = await client.request(method=method, url=url, headers=headers, json=body)
-        return resp.status_code, resp.text[:500]
+        return resp.status_code, resp.text[:500]   # cap stored body size
     except httpx.RequestError as e:
         return 0, f"Request error: {e}"
 

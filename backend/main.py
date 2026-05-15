@@ -3,12 +3,16 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import httpx
 
-from config import TARGET_BASE_URL
+from config import TARGET_BASE_URL, SESSION_MAX_AGE_HOURS
+from security import validate_target_url
 from db import (
     init_db,
     create_session,
@@ -18,12 +22,16 @@ from db import (
     save_vuln_result,
     save_patch,
     mark_patch_validated,
+    delete_old_sessions,
 )
 from parser import parse_spec
 from agents import generate_all_payload_pairs, judge_session, generate_patch
 from fuzzer import run_fuzzing_session, probe_rate_limit, probe_sqli, probe_path_traversal
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="SlingShot API", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +44,8 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     init_db()
+    # Purge sessions older than 24 hours on startup to limit PII retention
+    delete_old_sessions(max_age_hours=SESSION_MAX_AGE_HOURS)
 
 
 # ---------------------------------------------------------------------------
@@ -43,11 +53,18 @@ def on_startup():
 # ---------------------------------------------------------------------------
 
 @app.post("/scan")
+@limiter.limit("10/minute")
 async def start_scan(
+    request: Request,
     spec_file: UploadFile = File(...),
     target_url: str = Form(default=TARGET_BASE_URL),
     stack: str = Form(default="express"),
 ):
+    # Risk 2: validate target URL to prevent SSRF
+    try:
+        validate_target_url(target_url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     session_id = str(uuid.uuid4())
     spec_content = await spec_file.read()
 

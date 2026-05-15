@@ -49,6 +49,16 @@
   font-size: 12px;
 }
 
+.pv-disclaimer {
+  background: #1a1400;
+  border: 1px solid #5a4000;
+  border-radius: 4px;
+  color: #c8a84b;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 8px 12px;
+}
+
 /* ── Endpoint group ──────────────────────────────────────────────────────── */
 
 .pv-endpoint-group {

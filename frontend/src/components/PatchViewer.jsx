@@ -121,6 +121,14 @@ export default function PatchViewer({ patches }) {
           </p>
         )}
 
+        {endpoints.length > 0 && (
+          <div className="pv-disclaimer">
+            ⚠ These patches are AI-generated. Review all code carefully before
+            applying to a production system. SlingShot does not guarantee
+            correctness — treat each patch as a starting point, not a final fix.
+          </div>
+        )}
+
         {endpoints.map((endpoint) => (
           <EndpointGroup
             key={endpoint}

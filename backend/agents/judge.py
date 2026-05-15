@@ -2,6 +2,7 @@ import json
 from openai import OpenAI
 from config import OPENAI_API_KEY, OPENAI_MODEL
 from models.schemas import FuzzLog, VulnResult
+from security import sanitize_response_body
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -83,13 +84,16 @@ def judge_session(session_id: str, endpoint: str, attack_type: str, logs: list[F
     """
     formatted_logs = []
     for log in logs:
+        # Sanitize response bodies before injecting into the LLM prompt
+        # to prevent prompt injection via malicious API responses.
+        safe_body = sanitize_response_body(log.response_body)
         formatted_logs.append(
             f"Attempt #{log.attempt_number}\n"
             f"  Request: {log.request.get('method')} {log.request.get('url')}\n"
             f"  Headers: {json.dumps({k: v for k, v in log.request.get('headers', {}).items() if k.lower() != 'authorization'})}\n"
             f"  Body sent: {json.dumps(log.request.get('body'))}\n"
             f"  Response Status: {log.response_status}\n"
-            f"  Response Body: {log.response_body[:600]}"
+            f"  Response Body: {safe_body}"
         )
 
     criteria = _VERDICT_CRITERIA.get(attack_type, _VERDICT_CRITERIA["BOLA"])

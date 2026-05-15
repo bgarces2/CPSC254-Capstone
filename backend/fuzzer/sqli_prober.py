@@ -125,7 +125,7 @@ async def _timed_request(
     try:
         resp = await client.request(method=method, url=url, headers=headers)
         elapsed = time.monotonic() - start
-        return resp.status_code, resp.text[:1000], elapsed
+        return resp.status_code, resp.text[:500], elapsed   # cap stored body size
     except httpx.RequestError as e:
         elapsed = time.monotonic() - start
         return 0, f"Request error: {e}", elapsed
