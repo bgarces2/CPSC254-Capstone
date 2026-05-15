@@ -54,7 +54,7 @@ npm run dev
 1. Open **http://localhost:5173**
 2. Upload `victim-api/openapi.yaml` as the spec file
 3. Leave the target URL as `http://localhost:3000`
-4. Click **Launch Scan ⚡**
+4. Click **Launch Scan**
 
 Watch the Attacker Terminal stream live fuzzing attempts on the left. When an exploit is confirmed, the generated middleware patch appears on the right.
 
@@ -180,10 +180,11 @@ SlingShot's current architecture is intentionally constrained: it only observes 
 - Server-Side Request Forgery (SSRF)
 - Full SQL Injection (Read/Write Confirmation)
 - Insecure Deserialization
+
 In addition to these attacks, the current architecture only applies to the ready-to-implement Victim API. Future changes to architecture will need to include handling spec discovery, authentication flow, HTML response parsing, and spec-less endpoint classification if external scanning of websites is to be implemented. 
 More details on future implementations can be found in `futurework.md`.
 
---
+---
 
 ## Environmental Variables
 
