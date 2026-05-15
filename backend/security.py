@@ -24,9 +24,11 @@ _BLOCKED_NETWORKS = [
 ]
 
 _BLOCKED_HOSTNAMES = {
-    "localhost",
     "metadata.google.internal",
     "169.254.169.254",
+    # Note: localhost is intentionally NOT blocked here — the victim API
+    # runs on localhost by design. Loopback IPs (127.x) are still blocked
+    # via _BLOCKED_NETWORKS to prevent numeric IP bypasses.
 }
 
 _ALLOWED_SCHEMES = {"http", "https"}
@@ -62,8 +64,8 @@ def validate_target_url(url: str) -> str:
 
     Raises ValueError with a descriptive message if the URL:
       - Uses a non-http/https scheme
-      - Points to a private, loopback, or link-local IP address
-      - Points to a known cloud metadata endpoint or localhost
+      - Points to a private, loopback, or link-local IP address (127.x, 10.x, 192.168.x, etc.)
+      - Points to a known cloud metadata endpoint (169.254.169.254, metadata.google.internal)
       - Is malformed
 
     Returns the URL unchanged if it passes all checks.
