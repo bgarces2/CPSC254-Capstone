@@ -118,12 +118,11 @@ function EndpointHeader({ ev }) {
 }
 
 function AttackGroup({ group, isActive }) {
-  // SQLI requests default to open so all attempts are visible immediately
-  const [open, setOpen] = useState(group.attackType === "SQLI");
+  // All groups start collapsed — user opens them manually
+  const [open, setOpen] = useState(false);
   const verdict = group.verdict;
   const isExploit = verdict?.verdict === "EXPLOIT_CONFIRMED";
   const pending = !verdict;
-  const isSqli = group.attackType === "SQLI";
   const stillRunning = isActive && pending;
 
   return (
@@ -149,16 +148,16 @@ function AttackGroup({ group, isActive }) {
           </span>
         )}
 
-        {/* Dropdown toggle — always shown for SQLI, otherwise only when there are requests */}
-        {(isSqli || group.attempts.length > 0) && (
+        {/* Dropdown toggle — shown when there are requests to display */}
+        {group.attempts.length > 0 && (
           <button
             className="tg-toggle"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
           >
             {open
-              ? "▲ Hide"
-              : `▼ Show ${group.attempts.length} request${group.attempts.length !== 1 ? "s" : ""}`}
+              ? "Hide"
+              : `Show ${group.attempts.length} request${group.attempts.length !== 1 ? "s" : ""}`}
           </button>
         )}
       </div>
@@ -180,7 +179,7 @@ function AttackGroup({ group, isActive }) {
           )}
           {group.attempts.map((att, i) => {
             const is2xx = att.status >= 200 && att.status < 300;
-            const isSlow = isSqli && att.body_preview?.startsWith("[elapsed:");
+            const isSlow = group.attackType === "SQLI" && att.body_preview?.startsWith("[elapsed:");
             const elapsedMatch = isSlow && att.body_preview.match(/\[elapsed:\s*([\d.]+)s\]/);
             const elapsed = elapsedMatch ? parseFloat(elapsedMatch[1]) : null;
             const isSuspicious = elapsed !== null && elapsed >= 4.5;
